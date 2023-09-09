@@ -16,15 +16,16 @@ class User(Base):
     )
     password: Mapped[str] = mapped_column(String)
     level: Mapped[float] = mapped_column(Integer, default=0)
+    tg_username: Mapped[str] = mapped_column(String(60), nullable=True)
 
-    tg_user = relationship(
-        "TgUser", primaryjoin="User.id == TgUser.user_id", back_populates="user"
-    )
-    student_info = relationship(
-        "StudentInfo",
-        primaryjoin="User.id == StudentInfo.user_id",
-        back_populates="user",
-    )
+    # tg_user = relationship(
+    #     "TgUser", primaryjoin="User.id == TgUser.user_id", back_populates="user"
+    # )
+    # student_info = relationship(
+    #     "StudentInfo",
+    #     primaryjoin="User.id == StudentInfo.user_id",
+    #     back_populates="user",
+    # )
     skills = relationship(
         "Skill",
         secondary="user_skills",
@@ -50,30 +51,30 @@ class User(Base):
     )
 
 
-class TgUser(Base):
-    __tablename__ = "tg_users"
+# class TgUser(Base):
+#     __tablename__ = "tg_users"
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
-    first_name: Mapped[str] = mapped_column(String(30))
-    tg_id: Mapped[int] = mapped_column(Integer, unique=True, index=True)
-    last_name: Mapped[str] = mapped_column(String(30), nullable=True)
+#     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+#     first_name: Mapped[str] = mapped_column(String(30))
+#     tg_id: Mapped[int] = mapped_column(Integer, unique=True, index=True)
+#     last_name: Mapped[str] = mapped_column(String(30), nullable=True)
 
-    user = relationship(
-        "User", primaryjoin="TgUser.user_id == User.id", back_populates="tg_user"
-    )
+#     user = relationship(
+#         "User", primaryjoin="TgUser.user_id == User.id", back_populates="tg_user"
+#     )
 
 
-class StudentInfo(Base):
-    __tablename__ = "students_info"
+# class StudentInfo(Base):
+#     __tablename__ = "students_info"
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
-    graduation_year: Mapped[int] = mapped_column(Integer)
-    major: Mapped[str] = mapped_column(String(30))
-    faculty: Mapped[str] = mapped_column(String(30))
-    portfolio_url: Mapped[str] = mapped_column(String, nullable=True)
-    about: Mapped[str] = mapped_column(String, nullable=True)
+#     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+#     graduation_year: Mapped[int] = mapped_column(Integer)
+#     major: Mapped[str] = mapped_column(String(30))
+#     faculty: Mapped[str] = mapped_column(String(30))
+#     portfolio_url: Mapped[str] = mapped_column(String, nullable=True)
+#     about: Mapped[str] = mapped_column(String, nullable=True)
 
-    user = relationship("User", back_populates="student_info")
+#     user = relationship("User", back_populates="student_info")
 
 
 user_skills = Table(

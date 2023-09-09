@@ -1,7 +1,7 @@
 from src.data.repository import AbstractRepository
 from src.data.sql import SQLManager
 from src.utils.logging import get_logger
-from src.user.model import User
+from src.user.model import User, Skill
 from src.user.domain import UserDto
 from src.auth.domain import Signup
 
@@ -44,7 +44,21 @@ class UserRepository(AbstractRepository):
         user_db.last_name = user_data.last_name
         user_db.internal_role = user_data.internal_role
         user_db.level = user_data.level
+        user_db.tg_username = user_data.tg_username
 
+        skills: list[Skill] = []
+        for skill in user_data.skills:
+            skill_db = (
+                self.db.session.query(Skill)
+                .filter(Skill.skill_name == skill.skill_name)
+                .first()
+            )
+            if skill_db is None:
+                skill_db = Skill(**skill.model_dump())
+            skills.append(skill_db)
+
+        self.db.session.add_all(skills)
+        user_db.skills = skills
         self.db.session.add(user_db)
         self.db.session.commit()
 

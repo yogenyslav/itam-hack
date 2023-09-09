@@ -8,6 +8,12 @@ class UserInternalRole(str, Enum):
     student = "student"
 
 
+class SkillDto(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    skill_name: str = Field(..., min_length=1, max_length=80, example="Python")
+
+
 class UserDto(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -21,6 +27,12 @@ class UserDto(BaseModel):
         ..., min_length=1, max_length=50, example="student"
     )
     level: float = Field(..., ge=0, example=4.7)
+    tg_username: Optional[str] = Field(
+        None, min_length=1, max_length=60, example="mihail_surnachev"
+    )
+    skills: Optional[list[SkillDto]] = Field(
+        None, example=[{"id": 1, "skill_name": "Linear Algebra"}]
+    )
 
 
 class RoleCreate(BaseModel):
