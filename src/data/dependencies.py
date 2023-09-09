@@ -4,6 +4,7 @@ from src.data.sql import SQLManager
 from src.user.domain import UserDto
 from src.user.repository import UserRepository
 from src.hackathon.repository import HackathonRepository
+from src.news.repository import NewsRepository
 from src.utils.logging import get_logger
 
 
@@ -20,6 +21,12 @@ async def get_hackathon_repository(
     db: SQLManager = Depends(get_db),
 ) -> HackathonRepository:
     return HackathonRepository(db)
+
+
+async def get_news_repository(
+    db: SQLManager = Depends(get_db),
+) -> NewsRepository:
+    return NewsRepository(db)
 
 
 async def get_current_user(
