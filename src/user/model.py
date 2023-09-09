@@ -1,4 +1,5 @@
-from sqlalchemy import Integer, String, ForeignKey, Table, Column, Enum
+from datetime import date
+from sqlalchemy import Integer, String, ForeignKey, Table, Column, Enum, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.data import Base
 from src.user.domain import UserInternalRole
@@ -17,6 +18,7 @@ class User(Base):
     password: Mapped[str] = mapped_column(String)
     level: Mapped[float] = mapped_column(Integer, default=0)
     tg_username: Mapped[str] = mapped_column(String(60), nullable=True)
+    graduation_year: Mapped[date] = mapped_column(Date, nullable=True)
 
     # tg_user = relationship(
     #     "TgUser", primaryjoin="User.id == TgUser.user_id", back_populates="user"

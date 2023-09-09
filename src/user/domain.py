@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Optional
 from enum import Enum
 from pydantic import BaseModel, Field, ConfigDict
@@ -30,6 +31,7 @@ class UserDto(BaseModel):
     tg_username: Optional[str] = Field(
         None, min_length=1, max_length=60, example="mihail_surnachev"
     )
+    graduation_year: Optional[date] = Field(None, example=date(2023, 1, 1))
     skills: Optional[list[SkillDto]] = Field(
         None, example=[{"id": 1, "skill_name": "Linear Algebra"}]
     )
