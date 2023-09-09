@@ -1,7 +1,7 @@
 from sqlalchemy import Integer, String, ForeignKey, Table, Column, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.data import Base
-from src.user.domain import UserRole
+from src.user.domain import UserInternalRole
 
 
 class User(Base):
@@ -11,8 +11,11 @@ class User(Base):
     first_name: Mapped[str] = mapped_column(String(30))
     last_name: Mapped[str] = mapped_column(String(30))
     email: Mapped[str] = mapped_column(String(50), unique=True, index=True)
-    internal_role: Mapped[str] = mapped_column(Enum(UserRole), default=UserRole.student)
+    internal_role: Mapped[str] = mapped_column(
+        Enum(UserInternalRole), default=UserInternalRole.student
+    )
     password: Mapped[str] = mapped_column(String)
+    level: Mapped[float] = mapped_column(Integer, default=0)
 
     tg_user = relationship(
         "TgUser", primaryjoin="User.id == TgUser.user_id", back_populates="user"

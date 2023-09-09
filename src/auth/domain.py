@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from src.user.domain import UserRole
+from src.user.domain import UserInternalRole
 
 
 class AuthBase(BaseModel):
@@ -12,7 +12,7 @@ class AuthBase(BaseModel):
 class Signup(AuthBase):
     first_name: str = Field(..., example="Роберт", min_length=2, max_length=30)
     last_name: str = Field(..., example="Ласурия", min_length=2, max_length=30)
-    internal_role: UserRole = Field(UserRole.student, example="student")
+    internal_role: UserInternalRole = Field(UserInternalRole.student, example="student")
 
 
 class Login(AuthBase):

@@ -19,6 +19,9 @@ async def signup(
         signup_data.password = get_password_hash(signup_data.password)
         user = repository.add(signup_data)
         return AccessToken(access_token=create_access_jwt(user.id))
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
     except Exception as e:
         log.debug(str(e))
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -42,6 +45,9 @@ async def login(
                 detail="Incorrect password",
             )
         return AccessToken(access_token=create_access_jwt(user.id))
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
     except Exception as e:
         log.debug(str(e))
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

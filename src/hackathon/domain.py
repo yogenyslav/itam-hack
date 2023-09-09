@@ -21,8 +21,14 @@ class HackathonTagDto(BaseModel):
     tag: str = Field(..., min_length=1, max_length=50)
 
 
+class HackathonTagCount(BaseModel):
+    tag: str = Field(..., min_length=1, max_length=50)
+    count: int = Field(..., ge=0, example=1)
+
+
 class HackathonBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=80, example="Кокос Hackathon 2023")
+    registration_start: datetime = Field(..., example=datetime.now())
     registration_finish: datetime = Field(
         ..., example=datetime.now() + timedelta(days=1)
     )
@@ -30,6 +36,17 @@ class HackathonBase(BaseModel):
     team_maximum_size: int = Field(..., ge=1, example=5)
     prize_type: PrizeType = Field(..., example=PrizeType.money)
     money_prize: Optional[int] = Field(None, ge=0, example=1000000)
+    start_date: datetime = Field(..., example=datetime.now() + timedelta(days=2))
+    end_date: datetime = Field(..., example=datetime.now() + timedelta(days=3))
+    description: str = Field(..., min_length=1, example="Описание хакатона")
+    is_offline: bool = Field(..., example=True)
+    place: Optional[str] = Field(None, min_length=1, max_length=120, example="Москва")
+    image: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=120,
+        example="http://localhost:9999/static/image.png",
+    )
 
 
 class HackathonCreate(HackathonBase):
@@ -41,7 +58,7 @@ class HackathonCreate(HackathonBase):
     )
 
 
-class HackathonDto(BaseModel):
+class HackathonDto(HackathonBase):
     model_config = ConfigDict(from_attributes=True)
 
     tags: list[HackathonTagDto] = Field(

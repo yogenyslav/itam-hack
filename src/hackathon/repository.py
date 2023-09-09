@@ -1,8 +1,11 @@
+from datetime import datetime
+from sqlalchemy import func
+from sqlalchemy.engine.row import Row
 from src.data.repository import AbstractRepository
 from src.data.sql import SQLManager
 from src.utils.logging import get_logger
-from src.hackathon.model import Hackathon, HackathonTag
-from src.hackathon.domain import HackathonCreate, HackathonDto, HackathonTagCreate
+from src.hackathon.model import Hackathon, HackathonTag, hackathons_to_tags
+from src.hackathon.domain import HackathonCreate
 
 
 class HackathonRepository(AbstractRepository):
@@ -58,5 +61,23 @@ class HackathonRepository(AbstractRepository):
             raise ValueError("hackathon_id must be provided")
         self.db.session.commit()
 
-    def get_all(self) -> list[Hackathon]:
-        return self.db.session.query(Hackathon).all()
+    def get_all(self, upcoming: bool | None = None) -> list[Hackathon]:
+        if upcoming:
+            return (
+                self.db.session.query(Hackathon)
+                .filter(Hackathon.start_date > datetime.now())
+                .order_by(Hackathon.start_date)
+                .all()
+            )
+        else:
+            return self.db.session.query(Hackathon).all()
+
+    def get_tags(self) -> list[Row[tuple[str, int]]]:
+        return (
+            self.db.session.query(
+                HackathonTag.tag, func.count(HackathonTag.tag).label("count")
+            )
+            .join(Hackathon.tags)
+            .group_by(HackathonTag.tag)
+            .all()
+        )

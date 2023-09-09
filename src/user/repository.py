@@ -2,6 +2,7 @@ from src.data.repository import AbstractRepository
 from src.data.sql import SQLManager
 from src.utils.logging import get_logger
 from src.user.model import User
+from src.user.domain import UserDto
 from src.auth.domain import Signup
 
 
@@ -37,8 +38,14 @@ class UserRepository(AbstractRepository):
         else:
             raise ValueError("user_id or email must be provided")
 
-    def update(self, user: User):
-        self.db.session.add(user)
+    def update(self, user_db: User, user_data: UserDto):
+        user_db.email = user_data.email
+        user_db.first_name = user_data.first_name
+        user_db.last_name = user_data.last_name
+        user_db.internal_role = user_data.internal_role
+        user_db.level = user_data.level
+
+        self.db.session.add(user_db)
         self.db.session.commit()
 
     def delete(self, user_id: int | None = None, email: str | None = None):
