@@ -35,6 +35,19 @@ class User(Base):
         secondary="user_roles",
         back_populates="users",
     )
+    teams = relationship(
+        "HackathonTeamLfg",
+        secondary="team_members",
+        back_populates="members",
+    )
+    enrollments = relationship(
+        "HackathonTeamLfgEnrollment",
+        back_populates="user",
+    )
+    teams_created = relationship(
+        "HackathonTeamLfg",
+        back_populates="leader",
+    )
 
 
 class TgUser(Base):
@@ -102,4 +115,9 @@ class Role(Base):
         "User",
         secondary="user_roles",
         back_populates="roles",
+    )
+    teams = relationship(
+        "HackathonTeamLfg",
+        secondary="team_roles",
+        back_populates="required_roles",
     )

@@ -4,8 +4,18 @@ from sqlalchemy.engine.row import Row
 from src.data.repository import AbstractRepository
 from src.data.sql import SQLManager
 from src.utils.logging import get_logger
-from src.hackathon.model import Hackathon, HackathonTag, hackathons_to_tags
-from src.hackathon.domain import HackathonCreate
+from src.hackathon.model import (
+    Hackathon,
+    HackathonTag,
+    HackathonTeamLfg,
+    HackathonTeamLfgEnrollment,
+)
+from src.hackathon.domain import (
+    HackathonCreate,
+    HackathonTeamLfgCreate,
+    EnrollmentStatus,
+)
+from src.user.model import Role, User
 
 
 class HackathonRepository(AbstractRepository):
@@ -38,15 +48,23 @@ class HackathonRepository(AbstractRepository):
 
         return len(hackathons)
 
-    def get(self, hackathon_id: int | None = None) -> Hackathon | None:
+    def get(
+        self, hackathon_id: int | None = None, team_id: int | None = None
+    ) -> Hackathon | HackathonTeamLfg | None:
         if hackathon_id:
             return (
                 self.db.session.query(Hackathon)
                 .filter(Hackathon.id == hackathon_id)
                 .first()
             )
+        elif team_id:
+            return (
+                self.db.session.query(HackathonTeamLfg)
+                .filter(HackathonTeamLfg.id == team_id)
+                .first()
+            )
         else:
-            raise ValueError("hackathon_id must be provided")
+            raise ValueError("hackathon_id or team_id must be provided")
 
     def update(self, hackathon: Hackathon):
         self.db.session.add(hackathon)
@@ -81,3 +99,82 @@ class HackathonRepository(AbstractRepository):
             .group_by(HackathonTag.tag)
             .all()
         )
+
+    def add_team_lfg(self, team_data: HackathonTeamLfgCreate, user_id: int):
+        user_db = self.db.session.query(User).filter(User.id == user_id).first()
+
+        team = HackathonTeamLfg(**team_data.model_dump(exclude={"required_roles"}))
+        team.leader_id = user_id
+        team.leader = user_db
+        team.members.append(user_db)
+        for role in team_data.required_roles:
+            role_db = Role(**role.model_dump())
+            team.required_roles.append(role_db)
+
+        self.db.session.add_all(team.required_roles)
+        self.db.session.add(team)
+        self.db.session.commit()
+        return team.id
+
+    def get_teams_lfg(self, hackathon_id: int | None = None) -> list[HackathonTeamLfg]:
+        if hackathon_id:
+            return (
+                self.db.session.query(HackathonTeamLfg)
+                .filter(HackathonTeamLfg.hackathon_id == hackathon_id)
+                .all()
+            )
+        return self.db.session.query(HackathonTeamLfg).all()
+
+    def join_team_lfg(self, team_id: int, user_id: int, role_name: str):
+        team_enrollment = HackathonTeamLfgEnrollment(
+            team_id=team_id, user_id=user_id, role_name=role_name
+        )
+
+        user_db = self.db.session.query(User).filter(User.id == user_id).first()
+        user_db.enrollments.append(team_enrollment)
+
+        team_db = (
+            self.db.session.query(HackathonTeamLfg)
+            .filter(HackathonTeamLfg.id == team_id)
+            .first()
+        )
+        team_db.enrollments.append(team_enrollment)
+
+        self.db.session.add(team_enrollment)
+        self.db.session.commit()
+
+    def get_team_enrollments(
+        self,
+        enrollment_status: EnrollmentStatus,
+        user_id: int | None = None,
+        team_id: int | None = None,
+    ) -> list[HackathonTeamLfgEnrollment]:
+        db_query = self.db.session.query(HackathonTeamLfgEnrollment).filter(
+            HackathonTeamLfgEnrollment.status == enrollment_status
+        )
+        if team_id:
+            return db_query.filter(HackathonTeamLfgEnrollment.team_id == team_id).all()
+        elif user_id:
+            return db_query.filter(HackathonTeamLfgEnrollment.user_id == user_id).all()
+        else:
+            raise ValueError("specify user_id or team_id")
+
+    def accept_team_enrollment(self, enrollment_id: int):
+        enrollment_db = (
+            self.db.session.query(HackathonTeamLfgEnrollment)
+            .filter(HackathonTeamLfgEnrollment.id == enrollment_id)
+            .first()
+        )
+        enrollment_db.status = EnrollmentStatus.accepted
+
+        team_db: HackathonTeamLfg = enrollment_db.team
+        team_db.required_members -= 1
+        for role in team_db.required_roles:
+            if role.role_name == enrollment_db.role_name:
+                team_db.required_roles.remove(role)
+                break
+
+        self.db.session.add(enrollment_db)
+        self.db.session.add(team_db)
+
+        self.db.session.commit()

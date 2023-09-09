@@ -21,3 +21,18 @@ class UserDto(BaseModel):
         ..., min_length=1, max_length=50, example="student"
     )
     level: float = Field(..., ge=0, example=4.7)
+
+
+class RoleCreate(BaseModel):
+    role_name: str = Field(
+        ..., min_length=1, max_length=80, example="Backend developer"
+    )
+
+
+class RoleDto(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int = Field(..., example=1)
+    role_name: str = Field(
+        ..., min_length=1, max_length=80, example="Backend developer"
+    )
