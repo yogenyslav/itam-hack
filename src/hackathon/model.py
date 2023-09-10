@@ -94,6 +94,7 @@ class HackathonTeamLfg(Base):
     )
     hackathon = relationship("Hackathon", back_populates="teams")
     enrollments = relationship("HackathonTeamLfgEnrollment", back_populates="team")
+    invites = relationship("HackathonTeamLfgInvite", back_populates="team")
 
 
 class HackathonTeamLfgEnrollment(Base):

@@ -196,7 +196,23 @@ async def accept_invite(
     repository: HackathonRepository = Depends(get_hackathon_repository),
 ):
     try:
-        repository.accept_invite(user_id=current_user.id, invite_id=invite_id)
+        repository.accept_invite(invite_id=invite_id)
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
+    except Exception as e:
+        log.debug(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.post("/invites/reject")
+async def accept_invite(
+    invite_id: int,
+    current_user: UserDto = Depends(get_current_user),
+    repository: HackathonRepository = Depends(get_hackathon_repository),
+):
+    try:
+        repository.accept_invite(invite_id=invite_id)
     except HTTPException as e:
         log.debug(str(e))
         raise e

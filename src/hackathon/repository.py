@@ -209,7 +209,7 @@ class HackathonRepository(AbstractRepository):
             .all()
         )
 
-    def accept_invite(self, user_id: int, invite_id: int):
+    def accept_invite(self, invite_id: int):
         invite_db = (
             self.db.session.query(HackathonTeamLfgInvite)
             .filter(HackathonTeamLfgInvite.id == invite_id)
@@ -224,6 +224,16 @@ class HackathonRepository(AbstractRepository):
         )
         team_db.members.append(invite_db.user)
 
-        self.db.session.add(invite_db)
+        self.db.session.delete(invite_db)
         self.db.session.add(team_db)
+        self.db.session.commit()
+
+    def reject_invite(self, invite_id: int):
+        invite_db = (
+            self.db.session.query(HackathonTeamLfgInvite)
+            .filter(HackathonTeamLfgInvite.id == invite_id)
+            .first()
+        )
+
+        self.db.session.delete(invite_db)
         self.db.session.commit()
