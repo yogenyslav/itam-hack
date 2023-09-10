@@ -12,7 +12,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.data import Base
 from src.hackathon.domain import PrizeType, EnrollmentStatus
-from src.user.model import Role
+from src.tags.model import Role
 
 
 class Hackathon(Base):
