@@ -1,8 +1,9 @@
 from datetime import date
-from sqlalchemy import Integer, String, ForeignKey, Table, Column, Enum, Date
+from sqlalchemy import Integer, String, Enum, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.data import Base
 from src.user.domain import UserInternalRole
+from src.tags.model import Role, Skill, TeamGoal
 
 
 class User(Base):
@@ -51,6 +52,11 @@ class User(Base):
         "HackathonTeamLfg",
         back_populates="leader",
     )
+    goals = relationship(
+        "TeamGoal",
+        secondary="user_team_goals",
+        back_populates="users",
+    )
 
 
 # class TgUser(Base):
@@ -77,50 +83,3 @@ class User(Base):
 #     about: Mapped[str] = mapped_column(String, nullable=True)
 
 #     user = relationship("User", back_populates="student_info")
-
-
-user_skills = Table(
-    "user_skills",
-    Base.metadata,
-    Column("user_id", Integer, ForeignKey("users.id")),
-    Column("skill_id", Integer, ForeignKey("skills.id")),
-)
-
-
-class Skill(Base):
-    __tablename__ = "skills"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    skill_name: Mapped[str] = mapped_column(String(80), index=True)
-
-    users = relationship(
-        "User",
-        secondary="user_skills",
-        back_populates="skills",
-    )
-
-
-user_roles = Table(
-    "user_roles",
-    Base.metadata,
-    Column("user_id", Integer, ForeignKey("users.id")),
-    Column("role_id", Integer, ForeignKey("roles.id")),
-)
-
-
-class Role(Base):
-    __tablename__ = "roles"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    role_name: Mapped[str] = mapped_column(String(80), index=True)
-
-    users = relationship(
-        "User",
-        secondary="user_roles",
-        back_populates="roles",
-    )
-    teams = relationship(
-        "HackathonTeamLfg",
-        secondary="team_roles",
-        back_populates="required_roles",
-    )

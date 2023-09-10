@@ -24,7 +24,7 @@ log = get_logger("HackathonEndpoints")
 async def create_hackathons(
     hackathons: list[HackathonCreate],
     repository: HackathonRepository = Depends(get_hackathon_repository),
-    current_user: UserDto = Depends(get_current_user),
+    current_user: UserDto | None = Depends(get_current_user),
 ) -> int:
     try:
         if current_user.internal_role != UserInternalRole.admin:
@@ -74,7 +74,7 @@ async def get_hackathon_tags(
 @router.post("/teams/create", status_code=status.HTTP_201_CREATED)
 async def create_hackathon_team(
     team_data: HackathonTeamLfgCreate,
-    current_user: UserDto = Depends(get_current_user),
+    current_user: UserDto | None = Depends(get_current_user),
     repository: HackathonRepository = Depends(get_hackathon_repository),
 ):
     try:
@@ -90,7 +90,7 @@ async def create_hackathon_team(
 @router.get("/teams", response_model=list[HackathonTeamLfgDto])
 async def get_hackathon_teams_lfg(
     hackathon_id: int | None = None,
-    current_user: UserDto = Depends(get_current_user),
+    current_user: UserDto | None = Depends(get_current_user),
     repository: HackathonRepository = Depends(get_hackathon_repository),
 ):
     try:
@@ -110,7 +110,7 @@ async def get_hackathon_teams_lfg(
 async def join_hackathon_team_lfg(
     team_id: int,
     role_name: str,
-    current_user: UserDto = Depends(get_current_user),
+    current_user: UserDto | None = Depends(get_current_user),
     repository: HackathonRepository = Depends(get_hackathon_repository),
 ):
     try:
@@ -127,7 +127,7 @@ async def join_hackathon_team_lfg(
 async def get_hackathon_team_lfg_enrollments(
     team_id: int,
     enrollment_status: EnrollmentStatus = EnrollmentStatus.pending,
-    current_user: UserDto = Depends(get_current_user),
+    current_user: UserDto | None = Depends(get_current_user),
     repository: HackathonRepository = Depends(get_hackathon_repository),
 ):
     try:
@@ -155,7 +155,7 @@ async def get_hackathon_team_lfg_enrollments(
 async def accept_hackathon_team_lfg_enrollment(
     enrollment_id: int,
     repository: HackathonRepository = Depends(get_hackathon_repository),
-    current_user: UserDto = Depends(get_current_user),
+    current_user: UserDto | None = Depends(get_current_user),
 ):
     try:
         repository.accept_team_enrollment(enrollment_id=enrollment_id)

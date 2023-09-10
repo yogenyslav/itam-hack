@@ -2,7 +2,7 @@ from typing import Optional
 from datetime import datetime, timedelta
 from enum import Enum
 from pydantic import BaseModel, Field, ConfigDict
-from src.user.domain import RoleDto, RoleCreate
+from src.tags.domain import RoleDto, RoleCreate
 
 
 class PrizeType(str, Enum):

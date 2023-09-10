@@ -1,8 +1,8 @@
 from src.data.repository import AbstractRepository
 from src.data.sql import SQLManager
 from src.utils.logging import get_logger
-from src.user.model import User, Skill
-from src.user.domain import UserDto
+from src.user.model import User, Skill, Role, TeamGoal
+from src.user.domain import UserDto, SurveyCreate
 from src.auth.domain import Signup
 
 
@@ -38,7 +38,9 @@ class UserRepository(AbstractRepository):
         else:
             raise ValueError("user_id or email must be provided")
 
-    def update(self, user_db: User, user_data: UserDto):
+    def update(
+        self, user_db: User, user_data: UserDto, survey: SurveyCreate | None = None
+    ):
         user_db.email = user_data.email
         user_db.first_name = user_data.first_name
         user_db.last_name = user_data.last_name
@@ -55,10 +57,47 @@ class UserRepository(AbstractRepository):
             )
             if skill_db is None:
                 skill_db = Skill(**skill.model_dump())
-            skills.append(skill_db)
+                skills.append(skill_db)
 
-        self.db.session.add_all(skills)
+        if len(skills):
+            self.db.session.add_all(skills)
+
         user_db.skills = skills
+
+        if survey:
+            roles: list[Role] = []
+            for role in survey.roles:
+                role_db = (
+                    self.db.session.query(Role)
+                    .filter(Role.role_name == role.role_name)
+                    .first()
+                )
+                if role_db is None:
+                    role_db = Role(**role.model_dump())
+                    roles.append(role_db)
+
+            if len(roles):
+                self.db.session.add_all(roles)
+            user_db.roles = roles
+
+            goals: list[TeamGoal] = []
+            for goal in survey.goals:
+                goal_db = (
+                    self.db.session.query(TeamGoal)
+                    .filter(TeamGoal.goal_name == goal.goal_name)
+                    .first()
+                )
+                if goal_db is None:
+                    goal_db = TeamGoal(**goal.model_dump())
+                    goals.append(goal_db)
+
+            if len(goals):
+                self.db.session.add_all(goals)
+            user_db.goals = goals
+
+            self.logger.debug(roles)
+            self.logger.debug(goals)
+
         self.db.session.add(user_db)
         self.db.session.commit()
 

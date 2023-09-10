@@ -4,7 +4,10 @@ from src.data.dependencies import (
     get_user_repository,
     get_hackathon_repository,
 )
-from src.user.domain import UserDto
+from src.user.domain import (
+    UserDto,
+    SurveyCreate,
+)
 from src.user.repository import UserRepository
 from src.hackathon.domain import HackathonTeamLfgEnrollmentDto, EnrollmentStatus
 from src.hackathon.repository import HackathonRepository
@@ -19,7 +22,7 @@ log = get_logger(__name__)
 @router.post("/update", status_code=status.HTTP_204_NO_CONTENT)
 async def update_user(
     user_data: UserDto,
-    current_user: UserDto = Depends(get_current_user),
+    current_user: UserDto | None = Depends(get_current_user),
     repository: UserRepository = Depends(get_user_repository),
 ):
     try:
@@ -39,7 +42,7 @@ async def update_user(
 
 
 @router.get("/profile/me", response_model=UserDto, status_code=status.HTTP_200_OK)
-async def me(current_user: UserDto = Depends(get_current_user)) -> UserDto:
+async def me(current_user: UserDto | None = Depends(get_current_user)) -> UserDto:
     return current_user
 
 
@@ -48,7 +51,7 @@ async def me(current_user: UserDto = Depends(get_current_user)) -> UserDto:
 )
 async def get_enrolled_teams(
     enrollment_status: EnrollmentStatus | None = EnrollmentStatus.pending,
-    current_user: UserDto = Depends(get_current_user),
+    current_user: UserDto | None = Depends(get_current_user),
     repository: HackathonRepository = Depends(get_hackathon_repository),
 ):
     try:
@@ -58,6 +61,42 @@ async def get_enrolled_teams(
                 user_id=current_user.id, enrollment_status=enrollment_status
             )
         ]
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
+    except Exception as e:
+        log.debug(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+# @router.post("/profile/:user_id/invite")
+# async def invite_user(
+#     user_id: int,
+#     team_id: int,
+#     current_user: UserDto | None = Depends(get_current_user),
+#     repository: HackathonRepository = Depends(get_hackathon_repository),
+# ):
+#     try:
+#         repository.invite_user(user_id=user_id, team_id=team_id)
+#     except HTTPException as e:
+#         log.debug(str(e))
+#         raise e
+#     except Exception as e:
+#         log.debug(str(e))
+#         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.post("/survey")
+async def create_survey(
+    survey_data: SurveyCreate,
+    current_user: UserDto | None = Depends(get_current_user),
+    repository: UserRepository = Depends(get_user_repository),
+):
+    try:
+        user_db = repository.get(user_id=current_user.id)
+        current_user.tg_username = survey_data.tg_username
+
+        repository.update(user_db, current_user, survey=survey_data)
     except HTTPException as e:
         log.debug(str(e))
         raise e

@@ -34,7 +34,7 @@ async def get_news(
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 async def create_news(
     news_data: list[NewsCreate],
-    current_user: UserDto = Depends(get_current_user),
+    current_user: UserDto | None = Depends(get_current_user),
     repository: NewsRepository = Depends(get_news_repository),
 ):
     try:
