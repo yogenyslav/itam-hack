@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
 from src.data.dependencies import (
     get_current_user,
     get_user_repository,
@@ -97,6 +97,31 @@ async def create_survey(
         current_user.tg_username = survey_data.tg_username
 
         repository.update(user_db, current_user, survey=survey_data)
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
+    except Exception as e:
+        log.debug(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.post("/avatar")
+async def update_picture(
+    file: UploadFile,
+    current_user: UserDto = Depends(get_current_user),
+    repository: UserRepository = Depends(get_user_repository),
+):
+    try:
+        file_ext = file.content_type.split("/")[-1]
+        with open(f"static/avatar_{current_user.id}.{file_ext}", "wb") as buffer:
+            buffer.write(await file.read())
+
+        url = f"http://localhost:9999/static/avatar_{current_user.id}.{file_ext}"
+        current_user.image_url = url
+        user_db = repository.get(user_id=current_user.id)
+        repository.update(user_db, current_user)
+
+        return {"url": url}
     except HTTPException as e:
         log.debug(str(e))
         raise e

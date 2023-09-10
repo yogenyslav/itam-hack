@@ -1,6 +1,6 @@
 stop:
 	docker compose -f docker/docker-compose.yaml down
-	rm -r docker/docker
+	rm -r docker/data
 
 debug:
 	docker compose -f docker/docker-compose.yaml up db --build -d

@@ -16,7 +16,7 @@ class SQLManager:
         self.pg_user = settings.postgres_user
         self.pg_pass = settings.postgres_password
         self.pg_host = settings.postgres_host
-        self.pg_port = settings.postgres_port_number
+        self.pg_port = settings.postgres_port
         self.pg_db = settings.postgres_db
         self.log = log
         connected = False

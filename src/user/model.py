@@ -20,15 +20,8 @@ class User(Base):
     level: Mapped[float] = mapped_column(Integer, default=0)
     tg_username: Mapped[str] = mapped_column(String(60), nullable=True)
     graduation_year: Mapped[date] = mapped_column(Date, nullable=True)
+    image_url: Mapped[str] = mapped_column(String, nullable=True)
 
-    # tg_user = relationship(
-    #     "TgUser", primaryjoin="User.id == TgUser.user_id", back_populates="user"
-    # )
-    # student_info = relationship(
-    #     "StudentInfo",
-    #     primaryjoin="User.id == StudentInfo.user_id",
-    #     back_populates="user",
-    # )
     skills = relationship(
         "Skill",
         secondary="user_skills",

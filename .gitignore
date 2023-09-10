@@ -1,6 +1,6 @@
 __pycache__
 .vscode
-docker/docker
+docker/data
 .env
 *.sql
 venv

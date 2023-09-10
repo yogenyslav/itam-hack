@@ -13,8 +13,5 @@ RUN pip install -r requirements.txt
 # Copy source code to working directory
 COPY . /code
 
-# Create data directory
-RUN mkdir -p /data/logs
-
 # Run the application
 CMD ["python3", "main.py"]

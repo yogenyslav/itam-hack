@@ -68,6 +68,9 @@ class UserDto(BaseModel):
         None, min_length=1, max_length=60, example="mihail_surnachev"
     )
     graduation_year: Optional[date] = Field(None, example=date(2023, 1, 1))
+    image_url: Optional[str] = Field(
+        None, example="https://localhost:9999/static/test.png"
+    )
     skills: Optional[list[SkillDto]] = Field(
         None, example=[{"id": 1, "skill_name": "Linear Algebra"}]
     )
