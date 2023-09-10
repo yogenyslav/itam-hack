@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, Path
 from src.data.dependencies import (
     get_current_user,
     get_user_repository,
@@ -44,6 +44,23 @@ async def update_user(
 @router.get("/profile/me", response_model=UserDto, status_code=status.HTTP_200_OK)
 async def me(current_user: UserDto | None = Depends(get_current_user)) -> UserDto:
     return current_user
+
+
+@router.get(
+    "/profile/{user_id}", response_model=UserDto, status_code=status.HTTP_200_OK
+)
+async def get_user(
+    user_id: int = Path(..., ge=1),
+    repository: UserRepository = Depends(get_user_repository),
+) -> UserDto:
+    try:
+        return UserDto.model_validate(repository.get(user_id=user_id))
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
+    except Exception as e:
+        log.debug(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get(

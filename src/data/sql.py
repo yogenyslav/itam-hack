@@ -19,7 +19,7 @@ class SQLManager:
             self.pg_user = "pguser"
             self.pg_pass = "pgpassword"
             self.pg_host = "localhost"
-            self.pg_port = 5433
+            self.pg_port = 5432
             self.pg_db = "dev"
         else:
             self.pg_user = settings.postgres_user

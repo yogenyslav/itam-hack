@@ -6,6 +6,7 @@ from src.tags.domain import SkillCreate, TeamGoalCreate, RoleCreate
 from src.hackathon.model import team_roles
 from src.data.sql import SQLManager
 from src.utils.logging import get_logger
+from src.auth.jwt import get_password_hash
 
 
 db = SQLManager(get_logger("uploader"), local=True)
@@ -19,6 +20,7 @@ def upload_users():
         for user in users:
             try:
                 signup = Signup(**user)
+                signup.password = get_password_hash(signup.password)
                 user_repository.add(signup)
                 print(f"uploaded user: {user['email']}")
             except Exception as e:
