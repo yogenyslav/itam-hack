@@ -63,9 +63,7 @@ async def get_user(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.get(
-    "/profile/team_enrollments", response_model=list[HackathonTeamLfgEnrollmentDto]
-)
+@router.get("/team_enrollments", response_model=list[HackathonTeamLfgEnrollmentDto])
 async def get_enrolled_teams(
     enrollment_status: EnrollmentStatus | None = EnrollmentStatus.pending,
     current_user: UserDto | None = Depends(get_current_user),
@@ -86,21 +84,27 @@ async def get_enrolled_teams(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-# @router.post("/profile/:user_id/invite")
-# async def invite_user(
-#     user_id: int,
-#     team_id: int,
-#     current_user: UserDto | None = Depends(get_current_user),
-#     repository: HackathonRepository = Depends(get_hackathon_repository),
-# ):
-#     try:
-#         repository.invite_user(user_id=user_id, team_id=team_id)
-#     except HTTPException as e:
-#         log.debug(str(e))
-#         raise e
-#     except Exception as e:
-#         log.debug(str(e))
-#         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+@router.post("/:user_id/invite")
+async def invite_user(
+    team_id: int,
+    user_id: int = Path(..., ge=1),
+    current_user: UserDto | None = Depends(get_current_user),
+    repository: HackathonRepository = Depends(get_hackathon_repository),
+):
+    try:
+        team = repository.get(team_id=team_id)
+        if team.leader_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions",
+            )
+        repository.invite_user(user_id=user_id, team_id=team_id)
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
+    except Exception as e:
+        log.debug(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post("/survey")
@@ -147,7 +151,7 @@ async def update_picture(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.get("/community", response_model=list[UserDto])
+@router.get("/community")
 async def get_community(
     offset: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
@@ -155,9 +159,44 @@ async def get_community(
     repository: UserRepository = Depends(get_user_repository),
 ):
     try:
-        return [
+        users = [
             UserDto.model_validate(user) for user in repository.get_all(limit, offset)
         ]
+
+        last_names = set([user.last_name for user in users])
+
+        return {"users": users, "last_names": last_names}
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
+    except Exception as e:
+        log.debug(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.get("/invites")
+async def get_invites(
+    current_user: UserDto = Depends(get_current_user),
+    repository: HackathonRepository = Depends(get_hackathon_repository),
+):
+    try:
+        return repository.get_invites(user_id=current_user.id)
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
+    except Exception as e:
+        log.debug(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.post("/invites/accept")
+async def accept_invite(
+    invite_id: int,
+    current_user: UserDto = Depends(get_current_user),
+    repository: HackathonRepository = Depends(get_hackathon_repository),
+):
+    try:
+        repository.accept_invite(user_id=current_user.id, invite_id=invite_id)
     except HTTPException as e:
         log.debug(str(e))
         raise e

@@ -42,28 +42,27 @@ class GraphCreate(GraphBase):
 class UserStatsGraphBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    interests_graph: list[GraphDto] = Field(..., example=[{"x": 0, "y": 1.2}])
-
 
 class UserStatsGraphDto(UserStatsGraphBase):
-    ...
+    interests_graph: list[GraphCreate] = Field(..., example=[{"x": 0, "y": 1.2}])
 
 
 class UserStatsGraphCreate(UserStatsGraphBase):
     user_id: int = Field(..., example=1)
+    interests_graph: list[GraphCreate] = Field(..., example=[{"x": 0, "y": 1.2}])
 
 
 class StatsBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
+
+class StatsDto(StatsBase):
     stats: UserStatsDto = Field(...)
     suggestion: str = Field(..., example="Потенциальный лидер")
     stats_graphs: UserStatsGraphDto = Field(...)
 
 
-class StatsDto(StatsBase):
-    ...
-
-
 class StatsCreate(StatsBase):
-    ...
+    stats: UserStatsCreate = Field(...)
+    suggestion: str = Field(..., example="Потенциальный лидер")
+    stats_graphs: UserStatsGraphCreate = Field(...)

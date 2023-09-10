@@ -17,18 +17,6 @@ class UserInternalRole(str, Enum):
     student = "student"
 
 
-# class UserTeamRole(str, Enum):
-#     graphic_designer = "graphic_designer"
-#     product_designer = "product_designer"
-#     project_manager = "project_manager"
-#     backend = "backend_developer"
-#     frontend = "frontend_developer"
-#     mobile = "mobile_developer"
-#     ml = "ml"
-#     business_analyst = "business_analyst"
-#     fullstack = "fullstack"
-
-
 class SurveyCreate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

@@ -158,7 +158,35 @@ async def accept_hackathon_team_lfg_enrollment(
     current_user: UserDto | None = Depends(get_current_user),
 ):
     try:
+        enrollment = repository.get_team_enrollments(enrollment_id=enrollment_id)
+        if current_user.id == enrollment.team.leader_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions",
+            )
         repository.accept_team_enrollment(enrollment_id=enrollment_id)
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
+    except Exception as e:
+        log.debug(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.post("/teams/reject_enrollment", status_code=status.HTTP_204_NO_CONTENT)
+async def accept_hackathon_team_lfg_enrollment(
+    enrollment_id: int,
+    repository: HackathonRepository = Depends(get_hackathon_repository),
+    current_user: UserDto | None = Depends(get_current_user),
+):
+    try:
+        enrollment = repository.get_team_enrollments(enrollment_id=enrollment_id)
+        if current_user.id == enrollment.team.leader_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions",
+            )
+        repository.reject_team_enrollment(enrollment_id=enrollment_id)
     except HTTPException as e:
         log.debug(str(e))
         raise e

@@ -1,5 +1,4 @@
 import json
-from sqlalchemy import text
 from src.auth.domain import Signup
 from src.user.repository import UserRepository
 from src.tags.repository import TagsRepository
@@ -54,8 +53,7 @@ def upload_goals():
                 tags_repository.add(goals_data=[goal_create])
                 print(f"uploaded goal: {goal}")
             except Exception as e:
-                # print(f"failed to upload role: {goal}")
-                pass
+                print(f"failed to upload role: {goal}")
 
 
 def upload_roles():
@@ -68,25 +66,41 @@ def upload_roles():
                 tags_repository.add(roles_data=[role_create])
                 print(f"uploaded role: {role}")
             except Exception as e:
-                # print(str(e))
+                print(str(e))
                 print(f"failed to upload role: {role}")
 
 
-# def upload_stats():
-#     with open("upload/stats.json", "r") as f:
-#         all_stats = json.load(f)
-#         for stats_object in all_stats:
-#             try:
-#                 db.session.execute(
-#                     text(
-#                         "INSERT INTO stats (user_id, days_) VALUES (:user_id, :stats)"
-#                     ),
-#                     stats_object["stats"],
-#                 )
-#                 print(f"uploaded stats: {stats_object}")
-#             except Exception as e:
-#                 print(str(e))
-#                 print(f"failed to upload stats: {stats_object}")
+def upload_stats():
+    stats_repository = StatsRepository(db)
+    with open("upload/stats.json", "r") as f:
+        all_stats = json.load(f)
+        for obj in all_stats:
+            stats_object = StatsCreate(**obj)
+            try:
+                stats = UserStats(
+                    user_id=stats_object.stats.user_id,
+                    days_in_club=stats_object.stats.days_in_club,
+                    hack_wins=stats_object.stats.hack_wins,
+                    hack_participated=stats_object.stats.hack_participated,
+                    messages_in_chats=stats_object.stats.messages_in_chats,
+                    avg_responsibility=stats_object.stats.avg_responsibility,
+                    avg_communications=stats_object.stats.avg_communications,
+                    avg_competence=stats_object.stats.avg_competence,
+                    avg_interest=stats_object.stats.avg_interest,
+                    avg_leadership=stats_object.stats.avg_leadership,
+                )
+                stats_graphs = UserStatsGraph(
+                    user_id=stats_object.stats_graphs.user_id,
+                )
+                interests_graphs = stats_graphs.interests_graph
+
+                stats_repository.add(stats=stats)
+                stats_repository.add(graph=stats_graphs)
+                stats_repository.add(interests_graphs=interests_graphs)
+                print(f"uploaded stats: {stats_object}")
+            except Exception as e:
+                print(str(e))
+                print(f"failed to upload stats: {stats_object}")
 
 
 def upload():

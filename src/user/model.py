@@ -24,60 +24,21 @@ class User(Base):
     image_url: Mapped[str] = mapped_column(String, nullable=True)
 
     skills: Mapped[list["Skill"]] = relationship(
-        "Skill",
-        secondary="user_skills",
-        back_populates="users",
+        "Skill", secondary="user_skills", back_populates="users"
     )
     roles: Mapped[list["Role"]] = relationship(
-        "Role",
-        secondary="user_roles",
-        back_populates="users",
+        "Role", secondary="user_roles", back_populates="users"
     )
     teams = relationship(
-        "HackathonTeamLfg",
-        secondary="team_members",
-        back_populates="members",
+        "HackathonTeamLfg", secondary="team_members", back_populates="members"
     )
-    enrollments = relationship(
-        "HackathonTeamLfgEnrollment",
-        back_populates="user",
-    )
-    teams_created = relationship(
-        "HackathonTeamLfg",
-        back_populates="leader",
-    )
+    enrollments = relationship("HackathonTeamLfgEnrollment", back_populates="user")
+    teams_created = relationship("HackathonTeamLfg", back_populates="leader")
     goals: Mapped[list["TeamGoal"]] = relationship(
-        "TeamGoal",
-        secondary="user_team_goals",
-        back_populates="users",
+        "TeamGoal", secondary="user_team_goals", back_populates="users"
     )
     stats: Mapped["UserStats"] = relationship("UserStats", back_populates="user")
     stats_graph: Mapped["UserStatsGraph"] = relationship(
         "UserStatsGraph", back_populates="user"
     )
-
-
-# class TgUser(Base):
-#     __tablename__ = "tg_users"
-
-#     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
-#     first_name: Mapped[str] = mapped_column(String(30))
-#     tg_id: Mapped[int] = mapped_column(Integer, unique=True, index=True)
-#     last_name: Mapped[str] = mapped_column(String(30), nullable=True)
-
-#     user = relationship(
-#         "User", primaryjoin="TgUser.user_id == User.id", back_populates="tg_user"
-#     )
-
-
-# class StudentInfo(Base):
-#     __tablename__ = "students_info"
-
-#     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
-#     graduation_year: Mapped[int] = mapped_column(Integer)
-#     major: Mapped[str] = mapped_column(String(30))
-#     faculty: Mapped[str] = mapped_column(String(30))
-#     portfolio_url: Mapped[str] = mapped_column(String, nullable=True)
-#     about: Mapped[str] = mapped_column(String, nullable=True)
-
-#     user = relationship("User", back_populates="student_info")
+    invites = relationship("HackathonTeamLfgInvite", back_populates="user")

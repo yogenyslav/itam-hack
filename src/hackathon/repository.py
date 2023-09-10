@@ -9,6 +9,7 @@ from src.hackathon.model import (
     HackathonTag,
     HackathonTeamLfg,
     HackathonTeamLfgEnrollment,
+    HackathonTeamLfgInvite,
 )
 from src.hackathon.domain import (
     HackathonCreate,
@@ -34,16 +35,17 @@ class HackathonRepository(AbstractRepository):
 
     def add(
         self,
-        hackathon_data: list[HackathonCreate],
+        hackathon_data: list[HackathonCreate] | None = None,
     ) -> int:
-        hackathons: list[Hackathon] = []
-        for hackathon in hackathon_data:
-            hackathon_db = Hackathon(**hackathon.model_dump(exclude={"tags"}))
-            for tag in hackathon.tags:
-                hackathon_db.tags.append(HackathonTag(**tag.model_dump()))
-            hackathons.append(hackathon_db)
+        if hackathon_data:
+            hackathons: list[Hackathon] = []
+            for hackathon in hackathon_data:
+                hackathon_db = Hackathon(**hackathon.model_dump(exclude={"tags"}))
+                for tag in hackathon.tags:
+                    hackathon_db.tags.append(HackathonTag(**tag.model_dump()))
+                hackathons.append(hackathon_db)
 
-        self.db.session.add_all(hackathons)
+            self.db.session.add_all(hackathons)
         self.db.session.commit()
 
         return len(hackathons)
@@ -148,6 +150,7 @@ class HackathonRepository(AbstractRepository):
         enrollment_status: EnrollmentStatus,
         user_id: int | None = None,
         team_id: int | None = None,
+        enrollment_id: int | None = None,
     ) -> list[HackathonTeamLfgEnrollment]:
         db_query = self.db.session.query(HackathonTeamLfgEnrollment).filter(
             HackathonTeamLfgEnrollment.status == enrollment_status
@@ -156,6 +159,10 @@ class HackathonRepository(AbstractRepository):
             return db_query.filter(HackathonTeamLfgEnrollment.team_id == team_id).all()
         elif user_id:
             return db_query.filter(HackathonTeamLfgEnrollment.user_id == user_id).all()
+        elif enrollment_id:
+            return db_query.filter(
+                HackathonTeamLfgEnrollment.id == enrollment_id
+            ).first()
         else:
             raise ValueError("specify user_id or team_id")
 
@@ -177,4 +184,46 @@ class HackathonRepository(AbstractRepository):
         self.db.session.add(enrollment_db)
         self.db.session.add(team_db)
 
+        self.db.session.commit()
+
+    def reject_team_enrollment(self, enrollment_id: int):
+        enrollment_db = (
+            self.db.session.query(HackathonTeamLfgEnrollment)
+            .filter(HackathonTeamLfgEnrollment.id == enrollment_id)
+            .first()
+        )
+        enrollment_db.status = EnrollmentStatus.rejected
+
+        self.db.session.add(enrollment_db)
+        self.db.session.commit()
+
+    def add_invite(self, team_id: int, user_id: int):
+        invite = HackathonTeamLfgInvite(team_id=team_id, user_id=user_id)
+        self.db.session.add(invite)
+        self.db.session.commit()
+
+    def get_invites(self, user_id: int) -> list[HackathonTeamLfgInvite]:
+        return (
+            self.db.session.query(HackathonTeamLfgInvite)
+            .filter(HackathonTeamLfgInvite.user_id == user_id)
+            .all()
+        )
+
+    def accept_invite(self, user_id: int, invite_id: int):
+        invite_db = (
+            self.db.session.query(HackathonTeamLfgInvite)
+            .filter(HackathonTeamLfgInvite.id == invite_id)
+            .first()
+        )
+        invite_db.status = EnrollmentStatus.accepted
+
+        team_db = (
+            self.db.session.query(HackathonTeamLfg)
+            .filter(HackathonTeamLfg.id == invite_db.team_id)
+            .first()
+        )
+        team_db.members.append(invite_db.user)
+
+        self.db.session.add(invite_db)
+        self.db.session.add(team_db)
         self.db.session.commit()

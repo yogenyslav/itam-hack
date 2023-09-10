@@ -109,3 +109,14 @@ class HackathonTeamLfgEnrollment(Base):
 
     team = relationship("HackathonTeamLfg", back_populates="enrollments")
     user = relationship("User", back_populates="enrollments")
+
+
+class HackathonTeamLfgInvite(Base):
+    __tablename__ = "hackathon_team_invites"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    team_id: Mapped[int] = mapped_column(Integer, ForeignKey("hackathon_teams.id"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+
+    team = relationship("HackathonTeamLfg", back_populates="invites")
+    user = relationship("User", back_populates="invites")
