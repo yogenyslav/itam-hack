@@ -1,8 +1,12 @@
 import json
+from sqlalchemy import text
 from src.auth.domain import Signup
 from src.user.repository import UserRepository
 from src.tags.repository import TagsRepository
 from src.tags.domain import SkillCreate, TeamGoalCreate, RoleCreate
+from src.stats.model import UserStats, UserStatsGraph, InterestsGraph
+from src.stats.domain import StatsCreate, UserStatsGraphCreate, GraphCreate
+from src.stats.repository import StatsRepository
 from src.hackathon.model import team_roles
 from src.data.sql import SQLManager
 from src.utils.logging import get_logger
@@ -50,7 +54,8 @@ def upload_goals():
                 tags_repository.add(goals_data=[goal_create])
                 print(f"uploaded goal: {goal}")
             except Exception as e:
-                print(f"failed to upload role: {goal}")
+                # print(f"failed to upload role: {goal}")
+                pass
 
 
 def upload_roles():
@@ -63,8 +68,25 @@ def upload_roles():
                 tags_repository.add(roles_data=[role_create])
                 print(f"uploaded role: {role}")
             except Exception as e:
-                print(str(e))
+                # print(str(e))
                 print(f"failed to upload role: {role}")
+
+
+# def upload_stats():
+#     with open("upload/stats.json", "r") as f:
+#         all_stats = json.load(f)
+#         for stats_object in all_stats:
+#             try:
+#                 db.session.execute(
+#                     text(
+#                         "INSERT INTO stats (user_id, days_) VALUES (:user_id, :stats)"
+#                     ),
+#                     stats_object["stats"],
+#                 )
+#                 print(f"uploaded stats: {stats_object}")
+#             except Exception as e:
+#                 print(str(e))
+#                 print(f"failed to upload stats: {stats_object}")
 
 
 def upload():
@@ -72,6 +94,7 @@ def upload():
     upload_skills()
     upload_goals()
     upload_roles()
+    # upload_stats()
 
 
 if __name__ == "__main__":

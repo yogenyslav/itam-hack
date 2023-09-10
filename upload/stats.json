@@ -1,0 +1,26 @@
+[
+    {
+        "stats": {
+            "user_id": 3,
+            "days_in_club": 150,
+            "hack_wins": 2,
+            "hack_participated": 5,
+            "messages_in_chats": 1285,
+            "avg_responsibility": 5,
+            "avg_communications": 5,
+            "avg_competence": 4.99,
+            "avg_interest": 5,
+            "avg_leadership": 4.05
+        },
+        "suggestion": "Потенциальный лидер",
+        "stats_graphs": {
+            "user_id": 3,
+            "interests_graph": [
+                {
+                    "x": 0,
+                    "y": 1.2
+                }
+            ]
+        }
+    }
+]

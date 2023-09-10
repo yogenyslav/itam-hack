@@ -110,5 +110,5 @@ class UserRepository(AbstractRepository):
             raise ValueError("user_id or email must be provided")
         self.db.session.commit()
 
-    def get_all(self) -> list[User]:
-        return self.db.session.query(User).all()
+    def get_all(self, limit, offset) -> list[User]:
+        return self.db.session.query(User).offset(offset).limit(limit).all()

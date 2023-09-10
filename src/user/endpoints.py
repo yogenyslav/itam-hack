@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, Path
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, Path, Query
 from src.data.dependencies import (
     get_current_user,
     get_user_repository,
@@ -139,6 +139,25 @@ async def update_picture(
         repository.update(user_db, current_user)
 
         return {"url": url}
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
+    except Exception as e:
+        log.debug(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.get("/community", response_model=list[UserDto])
+async def get_community(
+    offset: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    current_user: UserDto = Depends(get_current_user),
+    repository: UserRepository = Depends(get_user_repository),
+):
+    try:
+        return [
+            UserDto.model_validate(user) for user in repository.get_all(limit, offset)
+        ]
     except HTTPException as e:
         log.debug(str(e))
         raise e

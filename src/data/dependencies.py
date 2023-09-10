@@ -7,6 +7,7 @@ from src.user.repository import UserRepository
 from src.hackathon.repository import HackathonRepository
 from src.news.repository import NewsRepository
 from src.tags.repository import TagsRepository
+from src.stats.repository import StatsRepository
 from src.utils.logging import get_logger
 
 log = get_logger(__name__)
@@ -37,6 +38,12 @@ async def get_tags_repository(
     db: SQLManager = Depends(get_db),
 ) -> TagsRepository:
     return TagsRepository(db)
+
+
+async def get_stats_repository(
+    db: SQLManager = Depends(get_db),
+) -> TagsRepository:
+    return StatsRepository(db)
 
 
 async def get_current_user(
