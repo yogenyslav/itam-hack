@@ -1,0 +1,23 @@
+[
+    {
+        "role_name": "Frontend"
+    },
+    {
+        "role_name": "Backend"
+    },
+    {
+        "role_name": "ML Engineer"
+    },
+    {
+        "role_name": "UI/UX Designer"
+    },
+    {
+        "role_name": "Data Scientist"
+    },
+    {
+        "role_name": "Full Stack"
+    },
+    {
+        "role_name": "Project manager"
+    }
+]

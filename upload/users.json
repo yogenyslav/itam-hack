@@ -1,0 +1,52 @@
+[
+    {
+        "email": "test@test.com",
+        "password": "test123456",
+        "first_name": "Даниил",
+        "last_name": "Ефимов",
+        "internal_role": "admin"
+    },
+    {
+        "email": "test1@test.com",
+        "password": "test123456",
+        "first_name": "Даниил",
+        "last_name": "Ким",
+        "internal_role": "admin"
+    },
+    {
+        "email": "test2@test.com",
+        "password": "test123456",
+        "first_name": "Денис",
+        "last_name": "Трипольский"
+    },
+    {
+        "email": "test3@test.com",
+        "password": "test123456",
+        "first_name": "Роберт",
+        "last_name": "Ласурия"
+    },
+    {
+        "email": "test4@test.com",
+        "password": "test123456",
+        "first_name": "Михаил",
+        "last_name": "Сурначев"
+    },
+    {
+        "email": "test5@test.com",
+        "password": "test123456",
+        "first_name": "Владимир",
+        "last_name": "Куренков"
+    },
+    {
+        "email": "test6@test.com",
+        "password": "test123456",
+        "first_name": "Алексей",
+        "last_name": "Давыдов"
+    },
+    {
+        "email": "test7@test.com",
+        "password": "test123456",
+        "first_name": "Алексей",
+        "last_name": "Егоров"
+    }
+]

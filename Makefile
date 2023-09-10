@@ -8,3 +8,6 @@ debug:
 
 deploy:
 	docker compose -f docker/docker-compose.yaml up --build -d
+
+spawn:
+	python3 uploader.py

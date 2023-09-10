@@ -12,12 +12,21 @@ from src.utils.logging import get_logger
 class SQLManager:
     instance = None
 
-    def __init__(self, log: Logger = get_logger("__sql_manager__")):
-        self.pg_user = settings.postgres_user
-        self.pg_pass = settings.postgres_password
-        self.pg_host = settings.postgres_host
-        self.pg_port = settings.postgres_port
-        self.pg_db = settings.postgres_db
+    def __init__(
+        self, log: Logger = get_logger("__sql_manager__"), local: bool = False
+    ):
+        if local:
+            self.pg_user = "pguser"
+            self.pg_pass = "pgpassword"
+            self.pg_host = "localhost"
+            self.pg_port = 5433
+            self.pg_db = "dev"
+        else:
+            self.pg_user = settings.postgres_user
+            self.pg_pass = settings.postgres_password
+            self.pg_host = settings.postgres_host
+            self.pg_port = settings.postgres_port
+            self.pg_db = settings.postgres_db
         self.log = log
         connected = False
         while not connected:
