@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -7,10 +8,9 @@ class NewsBase(BaseModel):
     content: str = Field(
         ...,
         min_length=5,
-        example="Сегодня пары у Егорова будут в 13:00. Там он расскажет обо всех тонкостях МЛя.",
-    )
-    image_url: str = Field(
-        ..., min_length=5, example="http://localhost:10001/static/news/1.jpg"
+        examples=[
+            "Сегодня пары у Егорова будут в 13:00. Там он расскажет обо всех тонкостях МЛя."
+        ],
     )
 
 
@@ -19,4 +19,9 @@ class NewsCreate(NewsBase):
 
 
 class NewsDto(NewsBase):
-    id: int = Field(..., example=1)
+    id: int = Field(..., examples=[1])
+    image_url: Optional[str] = Field(
+        None,
+        min_length=5,
+        examples=["http://localhost:9999/static/news_1_news_image.jpg"],
+    )

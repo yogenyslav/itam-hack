@@ -7,7 +7,7 @@ class Skill(Base):
     __tablename__ = "skills"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    skill_name: Mapped[str] = mapped_column(String(80), index=True, unique=True)
+    skill_name: Mapped[str] = mapped_column(String(80), index=True)
 
     users = relationship(
         "User",
@@ -28,7 +28,7 @@ class Role(Base):
     __tablename__ = "roles"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    role_name: Mapped[str] = mapped_column(String(80), index=True, unique=True)
+    role_name: Mapped[str] = mapped_column(String(80), index=True)
 
     users = relationship(
         "User",
@@ -54,7 +54,7 @@ class TeamGoal(Base):
     __tablename__ = "team_goals"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    goal_name: Mapped[str] = mapped_column(String(50), index=True, unique=True)
+    goal_name: Mapped[str] = mapped_column(String(50), index=True)
 
     users = relationship(
         "User",

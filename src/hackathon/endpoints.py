@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Path, UploadFile
 from src.data.dependencies import get_current_user, get_hackathon_repository
 from src.hackathon.domain import (
     HackathonCreate,
@@ -41,6 +41,42 @@ async def create_hackathons(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
+@router.post("/{hackathon_id}/image")
+async def upload_hackathon_image(
+    file: UploadFile,
+    hackathon_id: int = Path(..., ge=1),
+    current_user: UserDto = Depends(get_current_user),
+    repository: HackathonRepository = Depends(get_hackathon_repository),
+):
+    try:
+        if current_user.internal_role != UserInternalRole.admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions",
+            )
+
+        hackathon = repository.get(hackathon_id=hackathon_id)
+        if not hackathon:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "hackathon not found")
+
+        if not file:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "no file provided")
+        with open(f"static/hackathon_{hackathon_id}_{file.filename}", "wb") as buffer:
+            buffer.write(await file.read())
+
+        url = f"http://localhost:9999/static/hackathon_{hackathon_id}_{file.filename}"
+        hackathon.image = url
+        repository.update(hackathon)
+
+        return {"url": url}
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
+    except Exception as e:
+        log.debug(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
 @router.get("/upcoming", response_model=list[HackathonDto])
 async def get_upcoming_hackathons(
     repository: HackathonRepository = Depends(get_hackathon_repository),
@@ -50,6 +86,22 @@ async def get_upcoming_hackathons(
             HackathonDto.model_validate(hack)
             for hack in repository.get_all(upcoming=True)
         ]
+    except Exception as e:
+        log.debug(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.get("/{hackathon_id}", response_model=HackathonDto)
+async def get_hack_by_id(
+    hackathon_id: int = Path(..., ge=1),
+    current_user: UserDto = Depends(get_current_user),
+    repository: HackathonRepository = Depends(get_hackathon_repository),
+):
+    try:
+        return HackathonDto.model_validate(repository.get(hackathon_id=hackathon_id))
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
     except Exception as e:
         log.debug(str(e))
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

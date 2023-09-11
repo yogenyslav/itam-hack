@@ -77,6 +77,10 @@ async def get_current_user(
         level=user_db.level,
         tg_username=user_db.tg_username,
         graduation_year=user_db.graduation_year,
+        image_url=user_db.image_url,
+        skills=[],
+        roles=[],
+        goals=[],
     )
     user.roles = roles
     user.skills = skills

@@ -63,7 +63,9 @@ async def get_user(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.get("/team_enrollments", response_model=list[HackathonTeamLfgEnrollmentDto])
+@router.get(
+    "/team_enrollments", response_model=list[HackathonTeamLfgEnrollmentDto]
+)
 async def get_enrolled_teams(
     enrollment_status: EnrollmentStatus = EnrollmentStatus.pending,
     current_user: UserDto = Depends(get_current_user),

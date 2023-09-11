@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from pydantic import BaseModel, Field, ConfigDict
 from src.tags.domain import RoleDto, RoleCreate
+from src.user.domain import UserDto
 
 
 class PrizeType(str, Enum):
@@ -71,6 +72,7 @@ class HackathonCreate(HackathonBase):
 
 
 class HackathonDto(HackathonBase):
+    id: int = Field(..., ge=1, examples=[1])
     tags: list[HackathonTagDto] = Field(
         ...,
         examples=[
@@ -105,6 +107,7 @@ class HackathonTeamLfgDto(HackathonTeamLfgBase):
 
     id: int = Field(..., ge=1, examples=[1])
     leader_id: int = Field(..., ge=1, examples=[1])
+    members: list[UserDto] = Field(...)
     required_roles: list[RoleDto] = Field(
         ...,
         examples=[

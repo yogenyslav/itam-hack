@@ -36,19 +36,11 @@ class NewsRepository(AbstractRepository):
         self.db.session.delete(news)
         self.db.session.commit()
 
-    def update(self, news_data: NewsDto):
-        news = self.db.session.query(News).filter(News.id == news_data.id).one_or_none()
-        if news is None:
-            raise KeyError("news not found")
-        news.content = news_data.content
-        news.image_url = news_data.image_url
-
+    def update(self, news: News):
         self.db.session.add(news)
         self.db.session.commit()
 
-    def get(
-        self, news_id: int | None = None
-    ) -> NewsDto | None:
+    def get(self, news_id: int | None = None) -> News | None:
         if news_id:
             return self.db.session.query(News).filter(News.id == news_id).one_or_none()
         else:

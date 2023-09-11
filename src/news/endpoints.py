@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Path, UploadFile
 from src.data.dependencies import get_news_repository, get_current_user
 from src.news.repository import NewsRepository
 from src.news.domain import NewsDto, NewsCreate
@@ -69,3 +69,39 @@ async def create_news(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
+
+
+@router.post("/{news_id}/image")
+async def upload_news_image(
+    file: UploadFile,
+    news_id: int = Path(..., ge=1),
+    current_user: UserDto = Depends(get_current_user),
+    repository: NewsRepository = Depends(get_news_repository),
+):
+    try:
+        if current_user.internal_role != UserInternalRole.admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions",
+            )
+
+        news = repository.get(news_id=news_id)
+        if not news:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "hackathon not found")
+
+        if not file:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "no file provided")
+        with open(f"static/news_{news_id}_{file.filename}", "wb") as buffer:
+            buffer.write(await file.read())
+
+        url = f"http://localhost:9999/static/news_{news_id}_{file.filename}"
+        news.image_url = url
+        repository.update(news)
+
+        return {"url": url}
+    except HTTPException as e:
+        log.debug(str(e))
+        raise e
+    except Exception as e:
+        log.debug(str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

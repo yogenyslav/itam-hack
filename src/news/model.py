@@ -9,4 +9,4 @@ class News(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     content: Mapped[str] = mapped_column(String)
-    image_url: Mapped[str] = mapped_column(String)
+    image_url: Mapped[str] = mapped_column(String, nullable=True)
