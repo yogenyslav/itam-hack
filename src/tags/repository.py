@@ -55,31 +55,55 @@ class TagsRepository(AbstractRepository):
         ...
 
     def add_roles(self, roles_data: list[RoleCreate]) -> int:
-        roles = [Role(**role.model_dump()) for role in roles_data]
-        self.db.session.add_all(roles)
+        cnt = 0
+
+        for role in roles_data:
+            if self.db.session.query(Role).filter_by(role_name=role.role_name).first():
+                continue
+            self.db.session.add(Role(**role.model_dump()))
+            cnt += 1
+
+        # self.db.session.add_all(roles)
         self.db.session.commit()
 
-        return len(roles)
+        return cnt
 
     def get_all_roles(self) -> list[Role]:
         return self.db.session.query(Role).all()
 
     def add_goals(self, goals_data: list[TeamGoalCreate]) -> int:
-        goals = [TeamGoal(**goal.model_dump()) for goal in goals_data]
-        self.db.session.add_all(goals)
+        cnt = 0
+        for goal in goals_data:
+            if (
+                self.db.session.query(TeamGoal)
+                .filter_by(goal_name=goal.goal_name)
+                .first()
+            ):
+                continue
+            self.db.session.add(TeamGoal(**goal.model_dump()))
+            cnt += 1
+
         self.db.session.commit()
 
-        return len(goals)
+        return cnt
 
     def get_all_goals(self) -> list[TeamGoal]:
         return self.db.session.query(TeamGoal).all()
 
     def add_skills(self, skills_data: list[SkillCreate]) -> int:
-        skills = [Skill(**skill.model_dump()) for skill in skills_data]
-        self.db.session.add_all(skills)
+        cnt = 0
+        for skill in skills_data:
+            if (
+                self.db.session.query(Skill)
+                .filter_by(skill_name=skill.skill_name)
+                .first()
+            ):
+                continue
+            self.db.session.add(Skill(**skill.model_dump()))
+            cnt += 1
         self.db.session.commit()
 
-        return len(skills)
+        return cnt
 
     def get_all_skills(self) -> list[Skill]:
         return self.db.session.query(Skill).all()

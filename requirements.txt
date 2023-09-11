@@ -11,3 +11,5 @@ sqlalchemy~=2.0.20
 uvicorn~=0.23.2
 beautifulsoup4
 httpx
+pytest
+pandas

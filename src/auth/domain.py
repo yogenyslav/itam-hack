@@ -10,9 +10,27 @@ class AuthBase(BaseModel):
 
 
 class Signup(AuthBase):
-    first_name: str = Field(..., example="Роберт", min_length=2, max_length=30)
-    last_name: str = Field(..., example="Ласурия", min_length=2, max_length=30)
-    internal_role: UserInternalRole = Field(UserInternalRole.student, example="student")
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "first_name": "Роберт",
+                    "last_name": "Ласурия",
+                    "internal_role": "student",
+                }
+                # },
+                # {
+                #     "first_name": "Дмитрий",
+                #     "last_name": "Сурначев",
+                #     "internal_role": "student",
+                # },
+            ]
+        }
+    )
+
+    first_name: str = Field(..., min_length=2, max_length=30)
+    last_name: str = Field(..., min_length=2, max_length=30)
+    internal_role: UserInternalRole = Field(UserInternalRole.student)
 
 
 class Login(AuthBase):
