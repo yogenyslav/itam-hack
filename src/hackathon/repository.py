@@ -37,8 +37,9 @@ class HackathonRepository(AbstractRepository):
         self,
         hackathon_data: list[HackathonCreate] | None = None,
     ) -> int:
+        hackathons: list[Hackathon] = []
         if hackathon_data:
-            hackathons: list[Hackathon] = []
+
             for hackathon in hackathon_data:
                 hackathon_db = Hackathon(**hackathon.model_dump(exclude={"tags"}))
                 for tag in hackathon.tags:
@@ -51,19 +52,28 @@ class HackathonRepository(AbstractRepository):
         return len(hackathons)
 
     def get(
-        self, hackathon_id: int | None = None, team_id: int | None = None
+        self,
+        hackathon_id: int | None = None,
+        team_id: int | None = None,
+        enrollment_id: int | None = None,
     ) -> Hackathon | HackathonTeamLfg | None:
         if hackathon_id:
             return (
                 self.db.session.query(Hackathon)
                 .filter(Hackathon.id == hackathon_id)
-                .first()
+                .one_or_none()
             )
         elif team_id:
             return (
                 self.db.session.query(HackathonTeamLfg)
                 .filter(HackathonTeamLfg.id == team_id)
-                .first()
+                .one_or_none()
+            )
+        elif enrollment_id:
+            return (
+                self.db.session.query(HackathonTeamLfgEnrollment)
+                .filter(HackathonTeamLfgEnrollment.id == enrollment_id)
+                .one_or_none()
             )
         else:
             raise ValueError("hackathon_id or team_id must be provided")
@@ -102,29 +112,39 @@ class HackathonRepository(AbstractRepository):
             .all()
         )
 
+    # FIXME: create extra roles
     def add_team_lfg(self, team_data: HackathonTeamLfgCreate, user_id: int):
         user_db = self.db.session.query(User).filter(User.id == user_id).first()
 
         team = HackathonTeamLfg(**team_data.model_dump(exclude={"required_roles"}))
         team.leader_id = user_id
         team.leader = user_db
-        team.members.append(user_db)
-        for role in team_data.required_roles:
-            role_db = Role(**role.model_dump())
-            team.required_roles.append(role_db)
+        team.members = [user_db]
+        team.required_roles = [
+            Role(**role.model_dump()) for role in team_data.required_roles
+        ]
 
-        self.db.session.add_all(team.required_roles)
         self.db.session.add(team)
         self.db.session.commit()
         return team.id
 
-    def get_teams_lfg(self, hackathon_id: int | None = None) -> list[HackathonTeamLfg]:
+    def get_teams_lfg(
+        self, hackathon_id: int | None = None, user_id: int | None = None
+    ) -> list[HackathonTeamLfg]:
         if hackathon_id:
             return (
                 self.db.session.query(HackathonTeamLfg)
                 .filter(HackathonTeamLfg.hackathon_id == hackathon_id)
                 .all()
             )
+        elif user_id:
+            user_db: User = (
+                self.db.session.query(User).filter(User.id == user_id).one_or_none()
+            )
+            if not user_db:
+                raise KeyError("user not found")
+
+            return user_db.teams
         return self.db.session.query(HackathonTeamLfg).all()
 
     def join_team_lfg(self, team_id: int, user_id: int, role_name: str):
@@ -132,18 +152,23 @@ class HackathonRepository(AbstractRepository):
             team_id=team_id, user_id=user_id, role_name=role_name
         )
 
-        user_db = self.db.session.query(User).filter(User.id == user_id).first()
+        user_db = self.db.session.query(User).filter(User.id == user_id).one_or_none()
+        if not user_db:
+            raise KeyError("user not found")
         user_db.enrollments.append(team_enrollment)
 
         team_db = (
             self.db.session.query(HackathonTeamLfg)
             .filter(HackathonTeamLfg.id == team_id)
-            .first()
+            .one_or_none()
         )
-        team_db.enrollments.append(team_enrollment)
+        if team_db:
+            team_db.enrollments.append(team_enrollment)
 
-        self.db.session.add(team_enrollment)
-        self.db.session.commit()
+            self.db.session.add(team_enrollment)
+            self.db.session.commit()
+        else:
+            raise KeyError("team not found")
 
     def get_team_enrollments(
         self,
@@ -170,8 +195,10 @@ class HackathonRepository(AbstractRepository):
         enrollment_db = (
             self.db.session.query(HackathonTeamLfgEnrollment)
             .filter(HackathonTeamLfgEnrollment.id == enrollment_id)
-            .first()
+            .one_or_none()
         )
+        if not enrollment_db:
+            raise KeyError("enrollment not found accept_team_enrollment")
         enrollment_db.status = EnrollmentStatus.accepted
 
         team_db: HackathonTeamLfg = enrollment_db.team
@@ -190,9 +217,12 @@ class HackathonRepository(AbstractRepository):
         enrollment_db = (
             self.db.session.query(HackathonTeamLfgEnrollment)
             .filter(HackathonTeamLfgEnrollment.id == enrollment_id)
-            .first()
+            .one_or_none()
         )
-        enrollment_db.status = EnrollmentStatus.rejected
+        if not enrollment_db:
+            raise KeyError("enrollment not found reject_team_enrollment")
+
+        enrollment_db.status = EnrollmentStatus.denied
 
         self.db.session.add(enrollment_db)
         self.db.session.commit()
@@ -213,15 +243,19 @@ class HackathonRepository(AbstractRepository):
         invite_db = (
             self.db.session.query(HackathonTeamLfgInvite)
             .filter(HackathonTeamLfgInvite.id == invite_id)
-            .first()
+            .one_or_none()
         )
+        if not invite_db:
+            raise KeyError("invite not found accept_invite")
         invite_db.status = EnrollmentStatus.accepted
 
         team_db = (
             self.db.session.query(HackathonTeamLfg)
             .filter(HackathonTeamLfg.id == invite_db.team_id)
-            .first()
+            .one_or_none()
         )
+        if not team_db:
+            raise KeyError("team not found accept_invite")
         team_db.members.append(invite_db.user)
 
         self.db.session.delete(invite_db)

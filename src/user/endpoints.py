@@ -22,7 +22,7 @@ log = get_logger(__name__)
 @router.post("/update", status_code=status.HTTP_204_NO_CONTENT)
 async def update_user(
     user_data: UserDto,
-    current_user: UserDto | None = Depends(get_current_user),
+    current_user: UserDto = Depends(get_current_user),
     repository: UserRepository = Depends(get_user_repository),
 ):
     try:
@@ -42,7 +42,7 @@ async def update_user(
 
 
 @router.get("/profile/me", response_model=UserDto, status_code=status.HTTP_200_OK)
-async def me(current_user: UserDto | None = Depends(get_current_user)) -> UserDto:
+async def me(current_user: UserDto = Depends(get_current_user)) -> UserDto:
     return current_user
 
 
@@ -65,8 +65,8 @@ async def get_user(
 
 @router.get("/team_enrollments", response_model=list[HackathonTeamLfgEnrollmentDto])
 async def get_enrolled_teams(
-    enrollment_status: EnrollmentStatus | None = EnrollmentStatus.pending,
-    current_user: UserDto | None = Depends(get_current_user),
+    enrollment_status: EnrollmentStatus = EnrollmentStatus.pending,
+    current_user: UserDto = Depends(get_current_user),
     repository: HackathonRepository = Depends(get_hackathon_repository),
 ):
     try:
@@ -84,21 +84,27 @@ async def get_enrolled_teams(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.post("/:user_id/invite")
+@router.post("/{user_id}/invite")
 async def invite_user(
     team_id: int,
     user_id: int = Path(..., ge=1),
-    current_user: UserDto | None = Depends(get_current_user),
+    current_user: UserDto = Depends(get_current_user),
     repository: HackathonRepository = Depends(get_hackathon_repository),
 ):
     try:
         team = repository.get(team_id=team_id)
+
+        if not team:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND, "team not found /{user_id}/invite"
+            )
+
         if team.leader_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not enough permissions",
             )
-        repository.invite_user(user_id=user_id, team_id=team_id)
+        repository.add_invite(user_id=user_id, team_id=team_id)
     except HTTPException as e:
         log.debug(str(e))
         raise e
@@ -110,7 +116,7 @@ async def invite_user(
 @router.post("/survey")
 async def create_survey(
     survey_data: SurveyCreate,
-    current_user: UserDto | None = Depends(get_current_user),
+    current_user: UserDto = Depends(get_current_user),
     repository: UserRepository = Depends(get_user_repository),
 ):
     try:
@@ -133,11 +139,12 @@ async def update_picture(
     repository: UserRepository = Depends(get_user_repository),
 ):
     try:
-        file_ext = file.content_type.split("/")[-1]
-        with open(f"static/avatar_{current_user.id}.{file_ext}", "wb") as buffer:
+        if not file:
+            raise HTTPException(status.HTTP_403_FORBIDDEN)
+        with open(f"static/avatar_{file.filename}", "wb") as buffer:
             buffer.write(await file.read())
 
-        url = f"http://localhost:9999/static/avatar_{current_user.id}.{file_ext}"
+        url = f"http://localhost:9999/static/avatar_{file.filename}"
         current_user.image_url = url
         user_db = repository.get(user_id=current_user.id)
         repository.update(user_db, current_user)
@@ -206,7 +213,7 @@ async def accept_invite(
 
 
 @router.post("/invites/reject")
-async def accept_invite(
+async def reject_invite(
     invite_id: int,
     current_user: UserDto = Depends(get_current_user),
     repository: HackathonRepository = Depends(get_hackathon_repository),

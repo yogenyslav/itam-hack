@@ -42,14 +42,14 @@ async def get_tags_repository(
 
 async def get_stats_repository(
     db: SQLManager = Depends(get_db),
-) -> TagsRepository:
+) -> StatsRepository:
     return StatsRepository(db)
 
 
 async def get_current_user(
     access_token: str | None = Depends(oauth2_scheme),
     user_repository: UserRepository = Depends(get_user_repository),
-) -> UserDto | None:
+) -> UserDto:
     if not access_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -57,6 +57,12 @@ async def get_current_user(
         )
     user_id = decode_jwt(access_token)
     user_db = user_repository.get(user_id=user_id)
+
+    if not user_db:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated (current_user)",
+        )
 
     roles = [RoleDto.model_validate(role) for role in user_db.roles]
     skills = [SkillDto.model_validate(skill) for skill in user_db.skills]

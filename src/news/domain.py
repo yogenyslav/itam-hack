@@ -4,7 +4,6 @@ from pydantic import BaseModel, Field, ConfigDict
 class NewsBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    title: str = Field(..., min_length=5, max_length=100, example="Пары у Егорова")
     content: str = Field(
         ...,
         min_length=5,
